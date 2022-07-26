@@ -61,7 +61,11 @@ string diskMatrix::getTempFile(string directory) {
     } else if (getenv("TEMP") != NULL) {
       fname = getenv("TEMP");
     } else {
+#ifdef __WINDOWS__
+      fname = ".";
+#else
       fname = P_tmpdir;
+#endif
     }
   } else {
     fname = directory;
