@@ -7,6 +7,16 @@ ProgressBar::ProgressBar(void)
   curEnd = 100;  
   currentProgress = 0;
   //intervals.push(make_pair(curStart, curEnd));
+  hasCallback = false;
+}
+
+ProgressBar::ProgressBar(progress_callback progressCallback)
+{
+	curStart = 0;
+    curEnd = 100;  
+    currentProgress = 0;
+	callback = progressCallback;
+	hasCallback = true;
 }
 
 void ProgressBar::childProgress(double fraction)
@@ -35,8 +45,14 @@ void ProgressBar::setProgress(double progress) {
   if(currentProgress > curEnd) {
     currentProgress = curEnd;
   }
-  cerr << setiosflags(ios::fixed) << setprecision(2) << currentProgress << "% \r";
-  cerr.flush();
+  
+  if (!hasCallback) {
+    cerr << setiosflags(ios::fixed) << setprecision(2) << currentProgress << "% \r";
+    cerr.flush();
+  }
+  else {
+	  callback(currentProgress);
+  }
 }
 
 void ProgressBar::finish() {
