@@ -41,7 +41,15 @@ else
     LINK_OPTIONS = $(SWITCHES)
     LINKER_COMMANDS =-o 
     INCLUDES= -Isrc/distanceCalculation -Isrc/
-    BINPATH=../../lib/mac-x64
+
+    UNAME_P := $(shell uname -p)
+    ifeq ($(UNAME_P),x86_64)
+        BINPATH=../../lib/mac-x64
+    endif
+    ifneq ($(filter arm%,$(UNAME_P)),)
+        BINPATH=../../lib/mac-arm64
+    endif
+
   endif
 
 endif
