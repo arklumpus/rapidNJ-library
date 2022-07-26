@@ -1,34 +1,54 @@
 # Defining the compiler:
 ifeq ($(OS),Windows_NT)
-CC = cl
-LINK = link
-SWITCHES= -nologo -MT -D_CRT_SECURE_NO_DEPRECATE -EHsc -DPTW32_STATIC_LIB
-OPTIMIZATION_LEVEL=-O2
-DEBUG= #-WX #-pg
-OBJECTFLAG =-Fo
-COMPILEFLAG =-c
-LINK_OPTIONS =-nologo
-LINKER_COMMANDS =-out:
-LIBRARIES = pthreadVC2S.lib
-INCLUDES= -Isrc/distanceCalculation -Isrc/ -Ilib/includes
+  CC = cl
+  LINK = link
+  SWITCHES= -nologo -MT -D_CRT_SECURE_NO_DEPRECATE -EHsc -DPTW32_STATIC_LIB
+  OPTIMIZATION_LEVEL=-O2
+  DEBUG= #-WX #-pg
+  OBJECTFLAG =-Fo
+  COMPILEFLAG =-c
+  LINK_OPTIONS =-nologo
+  LINKER_COMMANDS =-out:
+  LIBRARIES = pthreadVC2S.lib
+  INCLUDES= -Isrc/distanceCalculation -Isrc/ -Ilib/includes
+  BINPATH=bin
 else
-CC = g++
-LINK = g++
-OPTIMIZATION_LEVEL=-O3 -msse2
-DEBUG= #-Wall #-g #-pg
-OBJECTFLAG =-o
-COMPILEFLAG =-c
-LIBRARIES =-lpthread
-SWITCHES =
-LINK_OPTIONS = $(SWITCHES)
-LINKER_COMMANDS =-o 
-INCLUDES= -Isrc/distanceCalculation -Isrc/
+  UNAME_S := $(shell uname -s)
+  ifeq ($(UNAME_S),Linux)
+    CC = g++
+    LINK = g++
+    OPTIMIZATION_LEVEL=-O3 -msse2
+    DEBUG= #-Wall #-g #-pg
+    OBJECTFLAG =-o
+    COMPILEFLAG =-c
+    LIBRARIES =-lpthread
+    SWITCHES =-std=c++11 -fPIC
+    LINK_OPTIONS = $(SWITCHES)
+    LINKER_COMMANDS =-o 
+    INCLUDES= -Isrc/distanceCalculation -Isrc/
+    BINPATH=../../lib/linux-x64
+  endif
+  
+  ifeq ($(UNAME_S),Darwin)
+    CC = g++
+    LINK = g++
+    OPTIMIZATION_LEVEL=-O3 -msse2
+    DEBUG= #-Wall #-g #-pg
+    OBJECTFLAG =-o
+    COMPILEFLAG =-c
+    LIBRARIES =-lpthread
+    SWITCHES =-std=c++11 -fPIC
+    LINK_OPTIONS = $(SWITCHES)
+    LINKER_COMMANDS =-o 
+    INCLUDES= -Isrc/distanceCalculation -Isrc/
+    BINPATH=../../lib/mac-x64
+  endif
+
 endif
 
 SRCPATH=src
 OBJPATH=obj
 LIBPATH=lib
-BINPATH=bin
 
 #use -pg for gprof profiling in both steps
 
@@ -45,7 +65,8 @@ all: rapidnj
 64 : all
 
 rapidnj: $(objects)
-	$(LINK) $(DEBUG) $(LINK_OPTIONS) $(LINKER_COMMANDS) $(BINPATH)/$@ $+ $(LIBRARIES)
+	mkdir -p $(BINPATH)
+	ar rcs $(BINPATH)/$@.a $(objects)
 
 # compile to objectfiles
 $(OBJPATH)/%.o: $(SRCPATH)/%.cpp
