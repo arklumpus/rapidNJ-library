@@ -12,6 +12,7 @@ class JCdistance{
 
 public:
   JCdistance(bool verbose, bool fastdist, dataloader* loader, diskMatrix* dm);
+  JCdistance(bool verbose, bool fastdist, dataloader* loader, diskMatrix* dm, distType** matrixStorage);
   //  void calculateDistances();  
   static void* distJCThread(void* ptr);
   distType** getDistanceMatrix();
@@ -32,6 +33,7 @@ private:
   distType** jcDistMatrix;
   distType maxDistance;
   diskMatrix* dm;
+  bool ownsDistanceMatrix;
 };
 
 

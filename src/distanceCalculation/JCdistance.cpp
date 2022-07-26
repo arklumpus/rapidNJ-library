@@ -19,20 +19,37 @@ JCdistance::JCdistance(bool verbose, bool fastdist, dataloader* loader, diskMatr
   JCdistance::sequenceNames = *loader->getSequenceNames();
   JCdistance::dm = dm;
   maxDistance = 0.0; 
+  ownsDistanceMatrix = true;
+}
+
+JCdistance::JCdistance(bool verbose, bool fastdist, dataloader* loader, diskMatrix* dm, distType** matrixStorage) {
+  JCdistance::verbose = verbose;
+  JCdistance::loader = loader;
+  JCdistance::fastdist = fastdist;
+  JCdistance::seqCount = loader->getSequenceCount();
+  JCdistance::seqLength = loader->getSequenceLength();
+  JCdistance::sequenceNames = *loader->getSequenceNames();
+  JCdistance::dm = dm;
+  jcDistMatrix = matrixStorage;
+  ownsDistanceMatrix = false;
+  maxDistance = 0.0; 
 }
 
 void JCdistance::computeDistanceMatrix(int numThreads) {  
   maxDistance = 0.0;
-  if(dm == NULL) {
-    jcDistMatrix = new distType*[seqCount];
-    for (int i = 0; i < seqCount; i++) {
-      jcDistMatrix[i] = new distType[seqCount];
+  
+  if (ownsDistanceMatrix) {
+    if(dm == NULL) {
+      jcDistMatrix = new distType*[seqCount];
+      for (int i = 0; i < seqCount; i++) {
+        jcDistMatrix[i] = new distType[seqCount];
+      }
+    } else {    
+      jcDistMatrix = new distType*[numThreads* THREAD_ROW_BUFFER_COUNT];
+      for (int i = 0; i < numThreads* THREAD_ROW_BUFFER_COUNT; i++) {
+        jcDistMatrix[i] = new distType[seqCount];
+      }    
     }
-  } else {    
-    jcDistMatrix = new distType*[numThreads* THREAD_ROW_BUFFER_COUNT];
-    for (int i = 0; i < numThreads* THREAD_ROW_BUFFER_COUNT; i++) {
-      jcDistMatrix[i] = new distType[seqCount];
-    }    
   }
   computeDistanceMatrixMT(numThreads);
   if(dm != NULL) {
@@ -154,7 +171,7 @@ void* JCdistance::distJCThread(void* ptr) {
   DistanceEstimate* estimator = state->estimator;
   double alpha = 4.0;
   if(state->loader->type == PROTEIN) {
-	alpha = 20.0;
+    alpha = 20.0;
   }
   unsigned int offset = 0;
   for (unsigned int i = state->seqIdx; i < state->seqCount; i+=numThreads) {
@@ -176,16 +193,16 @@ void* JCdistance::distJCThread(void* ptr) {
       } else {
         distance = total / (distType) distances[2];
       }
-	  if(distance / ((alpha-1)/alpha) >= 1.0) {
-		distance = -1;		
-	  } else {		  
-		 distance = -((alpha-1)/alpha) * log( 1.0 - distance / ((alpha-1)/alpha));
-	  }
+      if(distance / ((alpha-1)/alpha) >= 1.0) {
+        distance = -1;        
+      } else {          
+         distance = -((alpha-1)/alpha) * log( 1.0 - distance / ((alpha-1)/alpha));
+      }
       if(maxDistance < distance){
         maxDistance = distance;
       }
-      jcDistMatrix[bufIdx][j] = distance;	  
-    }	
+      jcDistMatrix[bufIdx][j] = distance;      
+    }    
     if(state->dm != NULL) {
       pthread_mutex_lock(&state->mutex);
       state->availableBuffers--;
