@@ -1,3 +1,5 @@
+#define HAVE_STRUCT_TIMESPEC
+
 /* This is an implementation of the threads API of POSIX 1003.1-2001.
  *
  * --------------------------------------------------------------------------
