@@ -1,3 +1,5 @@
+This is a fork of somme/rapidNJ, modified to produce a static library rather than an executable.
+
 Compilation:
 Dependencies: C++
 
