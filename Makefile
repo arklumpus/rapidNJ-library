@@ -56,7 +56,7 @@ else
     INCLUDES= -Isrc/distanceCalculation -Isrc/
 
     UNAME_P := $(shell uname -p)
-    ifeq ($(UNAME_P),x86_64)
+    ifeq ($(UNAME_P),i386)
         OPTIMIZATION_LEVEL=-O3 -msse2
         BINPATH=../../lib/mac-x64
     endif
