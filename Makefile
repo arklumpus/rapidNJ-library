@@ -17,7 +17,6 @@ else
   ifeq ($(UNAME_S),Linux)
     CC = g++
     LINK = g++
-    OPTIMIZATION_LEVEL=-O3 -msse2
     DEBUG= #-Wall #-g #-pg
     OBJECTFLAG =-o
     COMPILEFLAG =-c
@@ -26,13 +25,27 @@ else
     LINK_OPTIONS = $(SWITCHES)
     LINKER_COMMANDS =-o 
     INCLUDES= -Isrc/distanceCalculation -Isrc/
-    BINPATH=../../lib/linux-x64
+    
+    UNAME_P := $(shell uname -p)
+    ifeq ($(UNAME_P),x86_64)
+        OPTIMIZATION_LEVEL=-O3 -msse2
+        BINPATH=../../lib/linux-x64
+    endif
+    ifneq ($(filter arm%,$(UNAME_P)),)
+        OPTIMIZATION_LEVEL=-O3
+        BINPATH=../../lib/linux-arm64
+    endif
+    ifneq ($(filter aarch%,$(UNAME_P)),)
+        OPTIMIZATION_LEVEL=-O3
+        BINPATH=../../lib/linux-arm64
+    endif
+
+
   endif
   
   ifeq ($(UNAME_S),Darwin)
     CC = g++
     LINK = g++
-    OPTIMIZATION_LEVEL=-O3 -msse2
     DEBUG= #-Wall #-g #-pg
     OBJECTFLAG =-o
     COMPILEFLAG =-c
@@ -44,9 +57,11 @@ else
 
     UNAME_P := $(shell uname -p)
     ifeq ($(UNAME_P),x86_64)
+        OPTIMIZATION_LEVEL=-O3 -msse2
         BINPATH=../../lib/mac-x64
     endif
     ifneq ($(filter arm%,$(UNAME_P)),)
+        OPTIMIZATION_LEVEL=-O3
         BINPATH=../../lib/mac-arm64
     endif
 
